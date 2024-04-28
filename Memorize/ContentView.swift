@@ -7,59 +7,85 @@
 
 import SwiftUI
 
-struct ContentView: View {
-    let emojis: [String] = ["🐳", "🦑", "🦞", "🐙", "🐟", "🐋", "🐡"]
+struct Themes {
     
-    @State var cardCount: Int = 4
+    var label: String
+    var theme: [String]
+    var symbol: String
+    var themeColor: Color
+    
+    static let ocean_theme = ["🐳", "🦑", "🦞", "🐙", "🐟", "🐋", "🐳", "🦑", "🦞", "🐙", "🐟", "🐋"]
+    static let bug_theme = ["🐝", "🪱", "🐛", "🦋", "🐌", "🐞", "🐝", "🪱", "🐛", "🦋", "🐌", "🐞"]
+    static let bird_theme = ["🐦‍⬛", "🦆", "🦅", "🦉", "🐓", "🦃", "🐦‍⬛", "🦆", "🦅", "🦉", "🐓", "🦃"]
+}
+
+struct ContentView: View {
+    
+    @State var emojis: [String] = Themes.ocean_theme
+    
+    @State var themeColorSelected: Color = .blue
     
     var body: some View {
         VStack {
+            Text("Memorize!")
+                .font(.largeTitle)
             // ScrollView is like a VStack
             ScrollView {
                 cards
             }
             Spacer()
-            cardCountModify
+            themeModify
         }
         .padding()
     }
     
-    var cardCountModify: some View {
+    var themeModify: some View {
         HStack {
-            cardRemover
-            Spacer()
-            cardAdder
+            themeButtonsView
+                .padding([.top, .leading, .trailing], 30)
+                .padding(.bottom, 10)
         }
     }
     
     var cards: some View {
-        LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
+        LazyVGrid(columns: [GridItem(), GridItem(), GridItem(), GridItem()]) {
             // Integers up to & NOT including 4
-            ForEach(0..<cardCount, id: \.self) { index in
+            ForEach(0..<emojis.count, id: \.self) { index in
                 CardView(content: emojis[index])
                     .aspectRatio(2/3, contentMode: .fit)
             }
         }
-        .foregroundColor(.orange)
+        .foregroundColor(themeColorSelected)
     }
     
-    func cardCountAdjuster(by offset: Int, symbol: String) -> some View {
-        Button(action: {
-            cardCount += offset
-        }, label: {
-            Image(systemName: symbol)
-        })
-        .disabled(cardCount + offset < 1 || cardCount + offset > emojis.count)
-        .imageScale(.large)
-        .font(.largeTitle)
+    func themeChanger(themeText: String, theme: [String], symbol: String, themeColor: Color) -> some View {
+        VStack {
+            Button(action: {
+                emojis = theme
+                emojis.shuffle()
+                themeColorSelected = themeColor
+            }, label: {
+                Image(systemName: symbol)
+            })
+            .imageScale(.large)
+            .font(.largeTitle)
+            .tint(themeColor)
+            Text(themeText)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(themeColor)
+        }
     }
     
-    var cardRemover: some View {
-        return cardCountAdjuster(by: -1, symbol: "minus.square")
-    }
+    let themeButtons = [
+        Themes(label: "Fishes", theme: Themes.ocean_theme, symbol: "fish.circle", themeColor: .blue),
+        Themes(label: "Bugs", theme: Themes.bug_theme, symbol: "ant.circle", themeColor: .green),
+        Themes(label: "Birds", theme: Themes.bird_theme, symbol: "bird.circle", themeColor: .gray)
+    ]
     
-    var cardAdder: some View {
-        return cardCountAdjuster(by: +1, symbol: "plus.square")
+    var themeButtonsView: some View {
+        ForEach(themeButtons, id: \.label) { buttonData in
+            themeChanger(themeText: buttonData.label, theme: buttonData.theme, symbol: buttonData.symbol, themeColor: buttonData.themeColor)
+        }
     }
 }
 
@@ -86,28 +112,6 @@ struct CardView: View {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #Preview {
     ContentView()
